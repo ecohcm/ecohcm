@@ -305,7 +305,7 @@ window.submitReservation = function() {
 """
     return render_template_string(html, photos1=photos1, photos2=photos2)
 
-# ====================== API ======================
+# ====================== API 라우트 ======================
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json()
