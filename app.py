@@ -82,7 +82,7 @@ def show_pin_page():
     """
     return render_template_string(html)
 
-# ==================== 메인 사이트 (1번, 2번 크게 표시) ====================
+# ====================== 메인 사이트 (모든 기능 포함) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -134,7 +134,6 @@ def show_main_site():
     </div>
 </div>
 
-<!-- 장바구니 버튼 -->
 <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
     <button onclick="showCart(1)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">1번 장바구니 보기</button>
     <button onclick="showCart(2)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">2번 장바구니 보기</button>
