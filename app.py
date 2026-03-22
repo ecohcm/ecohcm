@@ -19,7 +19,7 @@ API_KEY = "AIzaSyD9JqlO1r4WozGod_vd5R6DOQB_HRits18"
 cart1 = []
 cart2 = []
 
-# ==================== 사진 가져오기 ====================
+# ==================== 사진 가져오기 (더 안전하게) ====================
 def get_drive_photos(folder_id):
     try:
         url = "https://www.googleapis.com/drive/v3/files"
@@ -27,13 +27,17 @@ def get_drive_photos(folder_id):
             "q": f"'{folder_id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",
             "fields": "files(id, name, mimeType)",
             "orderBy": "name",
-            "key": API_KEY
+            "key": API_KEY,
+            "pageSize": 50
         }
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=15)
+        if response.status_code != 200:
+            print(f"Drive API 오류: {response.status_code} - {response.text}")
+            return []
         data = response.json()
         return data.get('files', [])
     except Exception as e:
-        print("Drive 오류:", e)
+        print("Drive 오류:", str(e))
         return []
 
 # ==================== PIN 페이지 ====================
