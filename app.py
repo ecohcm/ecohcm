@@ -206,7 +206,7 @@ def show_main_site():
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>사진 예약 사이트</title>
+    <title>ecohcm</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -219,7 +219,7 @@ def show_main_site():
 </head>
 <body class="bg-gray-900 text-white">
 <div class="max-w-7xl mx-auto p-6">
-    <h1 class="text-5xl font-bold text-center my-10">📸 사진 예약 사이트</h1>
+    <h1 class="text-5xl font-bold text-center my-10">📸 ecohcm</h1>
 
     <!-- 1번 폴더 -->
     <div class="mb-12">
