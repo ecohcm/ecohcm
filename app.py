@@ -19,7 +19,6 @@ API_KEY = "AIzaSyD9JqlO1r4WozGod_vd5R6DOQB_HRits18"
 cart1 = []
 cart2 = []
 
-# ==================== 사진 가져오기 ====================
 def get_drive_photos(folder_id):
     try:
         url = "https://www.googleapis.com/drive/v3/files"
@@ -305,7 +304,7 @@ window.submitReservation = function() {
 """
     return render_template_string(html, photos1=photos1, photos2=photos2)
 
-# ====================== API 라우트 ======================
+# ====================== API ======================
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json()
