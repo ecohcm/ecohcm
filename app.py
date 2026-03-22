@@ -82,7 +82,7 @@ def show_pin_page():
     """
     return render_template_string(html)
 
-# ====================== 메인 사이트 (1번, 2번 크게 표시) ======================
+# ====================== 메인 사이트 (이전 코드 그대로) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -95,7 +95,7 @@ def show_main_site():
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .folder-label { font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; }
+        .tab-active { border-bottom: 4px solid #3b82f6; font-weight: bold; color: white; }
         img { cursor: pointer; transition: transform 0.2s; }
         img:hover { transform: scale(1.05); }
         .cart-img { max-height: 180px; object-fit: cover; border-radius: 12px; }
@@ -105,28 +105,27 @@ def show_main_site():
 <div class="max-w-7xl mx-auto p-6">
     <h1 class="text-5xl font-bold text-center my-10">ecohcm - 사진 예약 사이트</h1>
 
-    <!-- 1번 폴더 -->
-    <div class="mb-16">
-        <div class="folder-label text-blue-400">📁 1번 폴더</div>
+    <div class="flex justify-center border-b border-gray-700 mb-10">
+        <button onclick="switchTab(1)" id="tab1" class="tab px-10 py-4 tab-active text-xl">1번</button>
+        <button onclick="switchTab(2)" id="tab2" class="tab px-10 py-4 text-xl">2번</button>
+    </div>
+
+    <div id="gallery1">
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos1 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" 
-                     onclick="openLightbox(this, 1)" class="w-full h-64 object-cover">
+                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" onclick="openLightbox(this, 1)" class="w-full h-64 object-cover">
                 <div class="p-4"><p class="font-medium truncate">{{ photo.name }}</p></div>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- 2번 폴더 -->
-    <div>
-        <div class="folder-label text-purple-400">📁 2번 폴더</div>
+    <div id="gallery2" class="hidden">
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos2 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" 
-                     onclick="openLightbox(this, 2)" class="w-full h-64 object-cover">
+                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" onclick="openLightbox(this, 2)" class="w-full h-64 object-cover">
                 <div class="p-4"><p class="font-medium truncate">{{ photo.name }}</p></div>
             </div>
             {% endfor %}
@@ -134,7 +133,6 @@ def show_main_site():
     </div>
 </div>
 
-<!-- 장바구니 버튼 -->
 <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
     <button onclick="showCart(1)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">1번 장바구니 보기</button>
     <button onclick="showCart(2)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">2번 장바구니 보기</button>
@@ -358,7 +356,7 @@ def reserve():
     else: cart2.clear()
     return jsonify({"status": "ok"})
 
-# ====================== 루트 경로 수정 (404 해결) ======================
+# ====================== 루트 경로 (404 해결) ======================
 @app.route('/')
 def home():
     if session.get('authenticated'):
