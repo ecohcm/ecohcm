@@ -82,7 +82,7 @@ def show_pin_page():
     """
     return render_template_string(html)
 
-# ====================== 메인 사이트 (1번, 2번 크게 표시) ======================
+# ====================== 메인 사이트 (1번, 2번 크게 표시 + 모든 기능 포함) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
