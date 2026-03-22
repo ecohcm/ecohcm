@@ -14,12 +14,13 @@ YOUR_CHAT_ID = "7737429021"
 CURRENT_PIN = "1234"
 CHANGE_PIN = "000000"
 
+# ★★★★★★★★★ API 키 여기에 넣음 ★★★★★★★★★
 API_KEY = "AIzaSyD9JqlO1r4WozGod_vd5R6DOQB_HRits18"
 
 cart1 = []
 cart2 = []
 
-# ==================== 사진 가져오기 ====================
+# ==================== 사진 가져오기 (credentials 없이) ====================
 def get_drive_photos(folder_id):
     try:
         url = "https://www.googleapis.com/drive/v3/files"
@@ -43,12 +44,12 @@ def show_pin_page():
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ecohcm - PIN 인증</title>
+    <title>PIN 인증</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex items-center justify-center">
     <div class="bg-gray-900 p-12 rounded-3xl w-full max-w-md text-center">
-        <h1 class="text-5xl font-bold mb-8">🔒 ecohcm 접근 권한 필요</h1>
+        <h1 class="text-5xl font-bold mb-8">🔒 접근 권한 필요</h1>
         <p class="text-gray-400 mb-10 text-lg">4자리 PIN 번호를 입력해주세요</p>
         
         <input id="pinInput" type="password" maxlength="4" 
@@ -58,6 +59,11 @@ def show_pin_page():
         <button onclick="checkPin()" 
                 class="w-full bg-blue-600 hover:bg-blue-700 py-6 rounded-2xl text-2xl font-bold">
             확인
+        </button>
+        
+        <button onclick="goToChangePin()" 
+                class="mt-6 w-full text-blue-400 hover:text-blue-300 py-3 text-sm">
+            PIN 번호 변경하기
         </button>
     </div>
 
@@ -76,13 +82,123 @@ def show_pin_page():
             }
         });
     }
+
+    function goToChangePin() {
+        const changePin = prompt("PIN 변경 창에 들어가려면 6자리 PIN을 입력하세요:");
+        if (changePin) {
+            fetch('/check_change_pin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pin: changePin})
+            }).then(r => r.json()).then(data => {
+                if (data.success) window.location.href = "/change_pin";
+                else alert("❌ 6자리 PIN이 틀렸습니다.");
+            });
+        }
+    }
     </script>
 </body>
 </html>
     """
     return render_template_string(html)
 
-# ====================== 메인 사이트 (1번, 2번 크게 표시 + 모든 기능) ======================
+def show_change_pin_page():
+    html = """
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PIN 번호 변경</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex items-center justify-center">
+    <div class="bg-gray-900 p-12 rounded-3xl w-full max-w-md text-center">
+        <h1 class="text-4xl font-bold mb-8">🔑 PIN 번호 변경</h1>
+        <p class="text-gray-400 mb-8">새로운 4자리 PIN 번호를 입력하세요</p>
+        
+        <input id="newPin" type="password" maxlength="4" 
+               class="w-full bg-gray-800 text-5xl text-center tracking-widest p-6 rounded-2xl mb-8 focus:outline-none focus:ring-4 focus:ring-green-500"
+               placeholder="••••" autofocus>
+        
+        <button onclick="changePin()" 
+                class="w-full bg-green-600 hover:bg-green-700 py-6 rounded-2xl text-2xl font-bold">
+            PIN 번호 변경하기
+        </button>
+        
+        <button onclick="window.location.href='/'" 
+                class="mt-6 w-full text-gray-400 py-3">
+            취소하고 돌아가기
+        </button>
+    </div>
+
+    <script>
+    function changePin() {
+        const newPin = document.getElementById('newPin').value.trim();
+        if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+            alert("PIN은 정확히 4자리 숫자여야 합니다.");
+            return;
+        }
+        fetch('/update_pin', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({new_pin: newPin})
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                alert("✅ PIN 번호가 성공적으로 변경되었습니다!\\n새 PIN: " + newPin);
+                window.location.href = '/';
+            } else {
+                alert("변경 실패");
+            }
+        });
+    }
+    </script>
+</body>
+</html>
+    """
+    return render_template_string(html)
+
+# ====================== PIN 라우트 ======================
+@app.route('/')
+def home():
+    session.clear()
+    return show_pin_page()
+
+@app.route('/main')
+def main_page():
+    if not session.get('authenticated'):
+        return redirect('/')
+    return show_main_site()
+
+@app.route('/change_pin')
+def change_pin_page():
+    return show_change_pin_page()
+
+@app.route('/check_pin', methods=['POST'])
+def check_pin():
+    data = request.get_json()
+    if str(data.get('pin')) == CURRENT_PIN:
+        session['authenticated'] = True
+        return jsonify({"success": True})
+    return jsonify({"success": False})
+
+@app.route('/check_change_pin', methods=['POST'])
+def check_change_pin():
+    data = request.get_json()
+    if str(data.get('pin')) == CHANGE_PIN:
+        return jsonify({"success": True})
+    return jsonify({"success": False})
+
+@app.route('/update_pin', methods=['POST'])
+def update_pin():
+    global CURRENT_PIN
+    data = request.get_json()
+    new_pin = str(data.get('new_pin', ''))
+    if len(new_pin) == 4 and new_pin.isdigit():
+        CURRENT_PIN = new_pin
+        return jsonify({"success": True})
+    return jsonify({"success": False, "message": "PIN은 4자리 숫자여야 합니다."})
+
+# ====================== 메인 사이트 ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -91,11 +207,11 @@ def show_main_site():
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ecohcm - 사진 예약 사이트</title>
+    <title>사진 예약 사이트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .folder-label { font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; }
+        .tab-active { border-bottom: 4px solid #3b82f6; font-weight: bold; color: white; }
         img { cursor: pointer; transition: transform 0.2s; }
         img:hover { transform: scale(1.05); }
         .cart-img { max-height: 180px; object-fit: cover; border-radius: 12px; }
@@ -103,11 +219,14 @@ def show_main_site():
 </head>
 <body class="bg-gray-900 text-white">
 <div class="max-w-7xl mx-auto p-6">
-    <h1 class="text-5xl font-bold text-center my-10">ecohcm - 사진 예약 사이트</h1>
+    <h1 class="text-5xl font-bold text-center my-10">📸 사진 예약 사이트</h1>
 
-    <!-- 1번 폴더 -->
-    <div class="mb-16">
-        <div class="folder-label text-blue-400">📁 1번 폴더</div>
+    <div class="flex justify-center border-b border-gray-700 mb-10">
+        <button onclick="switchTab(1)" id="tab1" class="tab px-10 py-4 tab-active text-xl">1번</button>
+        <button onclick="switchTab(2)" id="tab2" class="tab px-10 py-4 text-xl">2번</button>
+    </div>
+
+    <div id="gallery1">
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos1 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
@@ -119,9 +238,7 @@ def show_main_site():
         </div>
     </div>
 
-    <!-- 2번 폴더 -->
-    <div>
-        <div class="folder-label text-purple-400">📁 2번 폴더</div>
+    <div id="gallery2" class="hidden">
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos2 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
@@ -134,7 +251,6 @@ def show_main_site():
     </div>
 </div>
 
-<!-- 장바구니 버튼 -->
 <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
     <button onclick="showCart(1)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">1번 장바구니 보기</button>
     <button onclick="showCart(2)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">2번 장바구니 보기</button>
@@ -304,9 +420,9 @@ window.submitReservation = function() {
 </body>
 </html>
 """
-    return render_template_string(html, photos1=photos1, photos2=photos2)
+    return render_template_string(html, photos1=get_drive_photos(FOLDER1_ID), photos2=get_drive_photos(FOLDER2_ID))
 
-# ====================== API 라우트 ======================
+# ====================== API ======================
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json()
@@ -357,20 +473,6 @@ def reserve():
     if t == "1": cart1.clear()
     else: cart2.clear()
     return jsonify({"status": "ok"})
-
-# ====================== 루트 경로 (핀번호 문제 해결) ======================
-@app.route('/')
-def home():
-    if session.get('authenticated'):
-        return show_main_site()
-    session.clear()
-    return show_pin_page()
-
-@app.route('/main')
-def main_page():
-    if not session.get('authenticated'):
-        return redirect('/')
-    return show_main_site()
 
 if __name__ == '__main__':
     print("🚀 서버 시작!")
