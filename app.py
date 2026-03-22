@@ -1,7 +1,5 @@
 from flask import Flask, render_template_string, request, jsonify, session, redirect
 import requests
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 
 app = Flask(__name__)
 app.secret_key = "super-secret-key-2025"
@@ -18,34 +16,25 @@ CHANGE_PIN = "000000"
 
 cart1 = []
 cart2 = []
-# ============================================
 
+# ==================== 사진 가져오기 (credentials 없이) ====================
 def get_drive_photos(folder_id):
     try:
-        creds = Credentials.from_service_account_file('credentials.json',
-                                                      scopes=['https://www.googleapis.com/auth/drive.readonly'])
-        service = build('drive', 'v3', credentials=creds)
-        results = service.files().list(
-            q=f"'{folder_id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",
-            fields="files(id, name, mimeType)",
-            orderBy="name"
-        ).execute()
-        return results.get('files', [])
+        url = "https://www.googleapis.com/drive/v3/files"
+        params = {
+            "q": f"'{folder_id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",
+            "fields": "files(id, name, mimeType)",
+            "orderBy": "name",
+            "key": "AIzaSy...여기에_당신의_API_KEY_넣기"   # ← 반드시 API 키로 바꾸세요!
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        return data.get('files', [])
     except Exception as e:
         print("Drive 오류:", e)
         return []
 
-@app.route('/')
-def home():
-    session.clear()
-    return show_pin_page()
-
-@app.route('/main')
-def main_page():
-    if not session.get('authenticated'):
-        return redirect('/')
-    return show_main_site()
-
+# ==================== PIN 페이지 ====================
 def show_pin_page():
     html = """
 <!DOCTYPE html>
@@ -82,9 +71,7 @@ def show_pin_page():
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({pin: pin})
-        })
-        .then(r => r.json())
-        .then(data => {
+        }).then(r => r.json()).then(data => {
             if (data.success) window.location.href = "/main";
             else {
                 alert("❌ PIN 번호가 틀렸습니다.");
@@ -100,9 +87,7 @@ def show_pin_page():
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({pin: changePin})
-            })
-            .then(r => r.json())
-            .then(data => {
+            }).then(r => r.json()).then(data => {
                 if (data.success) window.location.href = "/change_pin";
                 else alert("❌ 6자리 PIN이 틀렸습니다.");
             });
@@ -114,8 +99,7 @@ def show_pin_page():
     """
     return render_template_string(html)
 
-@app.route('/change_pin')
-def change_pin_page():
+def show_change_pin_page():
     html = """
 <!DOCTYPE html>
 <html lang="ko">
@@ -155,9 +139,7 @@ def change_pin_page():
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({new_pin: newPin})
-        })
-        .then(r => r.json())
-        .then(data => {
+        }).then(r => r.json()).then(data => {
             if (data.success) {
                 alert("✅ PIN 번호가 성공적으로 변경되었습니다!\\n새 PIN: " + newPin);
                 window.location.href = '/';
@@ -173,6 +155,21 @@ def change_pin_page():
     return render_template_string(html)
 
 # ====================== PIN 라우트 ======================
+@app.route('/')
+def home():
+    session.clear()
+    return show_pin_page()
+
+@app.route('/main')
+def main_page():
+    if not session.get('authenticated'):
+        return redirect('/')
+    return show_main_site()
+
+@app.route('/change_pin')
+def change_pin_page():
+    return show_change_pin_page()
+
 @app.route('/check_pin', methods=['POST'])
 def check_pin():
     data = request.get_json()
@@ -198,7 +195,7 @@ def update_pin():
         return jsonify({"success": True})
     return jsonify({"success": False, "message": "PIN은 4자리 숫자여야 합니다."})
 
-# ====================== 메인 사이트 (모든 기존 기능 + 삭제 버튼 추가) ======================
+# ====================== 메인 사이트 ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -230,7 +227,8 @@ def show_main_site():
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos1 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" onclick="openLightbox(this, 1)" class="w-full h-64 object-cover">
+                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" 
+                     onclick="openLightbox(this, 1)" class="w-full h-64 object-cover">
                 <div class="p-4"><p class="font-medium truncate">{{ photo.name }}</p></div>
             </div>
             {% endfor %}
@@ -241,7 +239,8 @@ def show_main_site():
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for photo in photos2 %}
             <div class="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" onclick="openLightbox(this, 2)" class="w-full h-64 object-cover">
+                <img src="https://drive.google.com/thumbnail?id={{ photo.id }}&sz=w800" 
+                     onclick="openLightbox(this, 2)" class="w-full h-64 object-cover">
                 <div class="p-4"><p class="font-medium truncate">{{ photo.name }}</p></div>
             </div>
             {% endfor %}
@@ -254,7 +253,7 @@ def show_main_site():
     <button onclick="showCart(2)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">2번 장바구니 보기</button>
 </div>
 
-<!-- 장바구니 모달 (삭제 버튼 추가됨) -->
+<!-- 장바구니 모달 -->
 <div id="cartModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] overflow-auto">
         <h2 id="modalTitle" class="text-3xl font-bold mb-6"></h2>
@@ -332,9 +331,7 @@ window.addToCart = function(type, id, name) {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({type: type.toString(), id: id, name: name})
-    })
-    .then(r => r.json())
-    .then(data => alert(data.message || data.status));
+    }).then(r => r.json()).then(data => alert(data.message || data.status));
 };
 
 window.showCart = function(type) {
@@ -345,7 +342,6 @@ window.showCart = function(type) {
         document.getElementById('modalTitle').innerHTML = type + '번 장바구니 (' + items.length + '장)';
         const container = document.getElementById('cartList');
         container.innerHTML = '';
-        
         items.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = "bg-gray-700 p-3 rounded-2xl relative";
@@ -359,24 +355,19 @@ window.showCart = function(type) {
             `;
             container.appendChild(div);
         });
-        
         document.getElementById('cartModal').classList.remove('hidden');
     });
 };
 
-// 새로 추가된 삭제 기능
 window.removeFromCart = function(index, type) {
     if (!confirm("이 사진을 장바구니에서 삭제하시겠습니까?")) return;
-    
     fetch('/remove_from_cart', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({type: type.toString(), index: index})
-    })
-    .then(r => r.json())
-    .then(data => {
+    }).then(r => r.json()).then(data => {
         alert(data.message);
-        showCart(type);  // 삭제 후 새로고침
+        showCart(type);
     });
 };
 
@@ -415,6 +406,7 @@ window.submitReservation = function() {
         }).then(() => {
             alert("✅ 예약이 Telegram으로 전송되었습니다!");
             hideReserveModal();
+            cart1 = []; cart2 = [];  // 예약 후 장바구니 비우기
         }).catch(() => {
             alert("전송 중 오류가 발생했습니다.");
             resetReserveButton();
@@ -482,6 +474,5 @@ def reserve():
 if __name__ == '__main__':
     print("🚀 서버 시작!")
     print("접속 주소 → http://192.168.0.9:5000")
-    print(f"사이트 PIN (4자리): {CURRENT_PIN}")
-    print(f"PIN 변경 창 PIN (6자리): {CHANGE_PIN}")
+    print(f"사이트 PIN: {CURRENT_PIN}")
     app.run(host='0.0.0.0', port=5000, debug=True)
