@@ -14,6 +14,9 @@ YOUR_CHAT_ID = "7737429021"
 CURRENT_PIN = "1234"
 CHANGE_PIN = "000000"
 
+# ★★★★★★★★★ API 키 여기에 넣음 ★★★★★★★★★
+API_KEY = "AIzaSyD9JqlO1r4WozGod_vd5R6DOQB_HRits18"
+
 cart1 = []
 cart2 = []
 
@@ -25,7 +28,7 @@ def get_drive_photos(folder_id):
             "q": f"'{folder_id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false",
             "fields": "files(id, name, mimeType)",
             "orderBy": "name",
-            "key": "AIzaSy...여기에_당신의_API_KEY_넣기"   # ← 반드시 API 키로 바꾸세요!
+            "key": API_KEY
         }
         response = requests.get(url, params=params)
         data = response.json()
@@ -406,7 +409,7 @@ window.submitReservation = function() {
         }).then(() => {
             alert("✅ 예약이 Telegram으로 전송되었습니다!");
             hideReserveModal();
-            cart1 = []; cart2 = [];  // 예약 후 장바구니 비우기
+            cart1 = []; cart2 = [];
         }).catch(() => {
             alert("전송 중 오류가 발생했습니다.");
             resetReserveButton();
@@ -417,7 +420,7 @@ window.submitReservation = function() {
 </body>
 </html>
 """
-    return render_template_string(html, photos1=photos1, photos2=photos2)
+    return render_template_string(html, photos1=get_drive_photos(FOLDER1_ID), photos2=get_drive_photos(FOLDER2_ID))
 
 # ====================== API ======================
 @app.route('/add_to_cart', methods=['POST'])
