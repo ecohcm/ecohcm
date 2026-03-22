@@ -29,7 +29,7 @@ def get_drive_photos(folder_id):
             "orderBy": "name",
             "key": API_KEY
         }
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, timeout=10)
         data = response.json()
         return data.get('files', [])
     except Exception as e:
@@ -156,7 +156,7 @@ def show_change_pin_page():
     """
     return render_template_string(html)
 
-# ====================== 메인 사이트 (슬라이드 포함 모든 기능) ======================
+# ====================== 메인 사이트 (모든 기능 포함) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
