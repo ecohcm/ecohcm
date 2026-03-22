@@ -252,6 +252,7 @@ def show_main_site():
     </div>
 </div>
 
+<!-- 장바구니, 예약, 라이트박스 등 모든 기능 포함 (생략 없이) -->
 <!-- 장바구니 버튼 -->
 <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
     <button onclick="showCart(1)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">1번 장바구니 보기</button>
