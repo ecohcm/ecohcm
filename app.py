@@ -101,7 +101,6 @@ def show_pin_page():
     """
     return render_template_string(html)
 
-# ==================== PIN 변경 페이지 ====================
 def show_change_pin_page():
     html = """
 <!DOCTYPE html>
@@ -157,50 +156,7 @@ def show_change_pin_page():
     """
     return render_template_string(html)
 
-# ====================== PIN 라우트 ======================
-@app.route('/')
-def home():
-    if session.get('authenticated'):
-        return show_main_site()
-    session.clear()
-    return show_pin_page()
-
-@app.route('/main')
-def main_page():
-    if not session.get('authenticated'):
-        return redirect('/')
-    return show_main_site()
-
-@app.route('/change_pin')
-def change_pin_page():
-    return show_change_pin_page()
-
-@app.route('/check_pin', methods=['POST'])
-def check_pin():
-    data = request.get_json()
-    if str(data.get('pin')) == CURRENT_PIN:
-        session['authenticated'] = True
-        return jsonify({"success": True})
-    return jsonify({"success": False})
-
-@app.route('/check_change_pin', methods=['POST'])
-def check_change_pin():
-    data = request.get_json()
-    if str(data.get('pin')) == CHANGE_PIN:
-        return jsonify({"success": True})
-    return jsonify({"success": False})
-
-@app.route('/update_pin', methods=['POST'])
-def update_pin():
-    global CURRENT_PIN
-    data = request.get_json()
-    new_pin = str(data.get('new_pin', ''))
-    if len(new_pin) == 4 and new_pin.isdigit():
-        CURRENT_PIN = new_pin
-        return jsonify({"success": True})
-    return jsonify({"success": False, "message": "PIN은 4자리 숫자여야 합니다."})
-
-# ====================== 메인 사이트 (1번, 2번 크게 표시) ======================
+# ====================== 메인 사이트 (슬라이드 포함 모든 기능) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -252,7 +208,6 @@ def show_main_site():
     </div>
 </div>
 
-<!-- 장바구니, 예약, 라이트박스 등 모든 기능 포함 (생략 없이) -->
 <!-- 장바구니 버튼 -->
 <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
     <button onclick="showCart(1)" class="bg-green-600 hover:bg-green-700 w-64 py-4 rounded-2xl text-lg font-bold shadow-2xl">1번 장바구니 보기</button>
@@ -280,7 +235,7 @@ def show_main_site():
     </div>
 </div>
 
-<!-- 라이트박스 -->
+<!-- 라이트박스 (슬라이드) -->
 <div id="lightbox" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div class="relative max-w-5xl w-full px-4">
         <button onclick="closeLightbox()" class="absolute -top-12 right-4 text-white text-5xl hover:text-gray-300">&times;</button>
