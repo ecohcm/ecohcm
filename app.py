@@ -271,7 +271,7 @@ def show_main_site():
     <div class="bg-gray-800 rounded-3xl p-8 w-full max-w-md">
         <h2 class="text-3xl font-bold mb-6">예약 정보</h2>
         <input id="reserveDate" type="date" class="w-full p-4 bg-gray-700 rounded-2xl mb-4 text-white">
-        <input id="reserveTgId" type="text" placeholder="Telegram ID 또는 @아이디" class="w-full p-4 bg-gray-700 rounded-2xl mb-6 text-white">
+        <input id="reserveTgId" type="text" placeholder="Telegram ID or 키키오톡 ID" class="w-full p-4 bg-gray-700 rounded-2xl mb-6 text-white">
         <button id="submitBtn" onclick="submitReservation()" class="w-full bg-green-600 hover:bg-green-700 py-5 text-xl rounded-2xl font-bold">✅ 예약 전송하기</button>
         <button onclick="hideReserveModal()" class="mt-4 w-full text-gray-400 py-3">취소</button>
     </div>
@@ -298,9 +298,15 @@ let currentType = 1;
 let isReserving = false;
 
 window.switchTab = function(n) {
+    document.getElementById('tab1').classList.remove('tab-active');
+    document.getElementById('tab2').classList.remove('tab-active');
+    document.getElementById('tab' + n).classList.add('tab-active');
+
     document.getElementById('gallery1').classList.add('hidden');
     document.getElementById('gallery2').classList.add('hidden');
     document.getElementById('gallery' + n).classList.remove('hidden');
+
+    currentType = n;
 };
 
 window.openLightbox = function(img, folder) {
@@ -420,7 +426,7 @@ window.submitReservation = function() {
 </body>
 </html>
 """
-    return render_template_string(html, photos1=get_drive_photos(FOLDER1_ID), photos2=get_drive_photos(FOLDER2_ID))
+    return render_template_string(html, photos1=photos1, photos2=photos2)
 
 # ====================== API ======================
 @app.route('/add_to_cart', methods=['POST'])
