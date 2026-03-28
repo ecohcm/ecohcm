@@ -14,13 +14,12 @@ YOUR_CHAT_ID = "7737429021"
 CURRENT_PIN = "1234"
 CHANGE_PIN = "851215"
 
-# ★★★★★★★★★ API 키 여기에 넣음 ★★★★★★★★★
 API_KEY = "AIzaSyD9JqlO1r4WozGod_vd5R6DOQB_HRits18"
 
 cart1 = []
 cart2 = []
 
-# ==================== 사진 가져오기 (credentials 없이) ====================
+# ==================== 사진 가져오기 ====================
 def get_drive_photos(folder_id):
     try:
         url = "https://www.googleapis.com/drive/v3/files"
@@ -198,7 +197,7 @@ def update_pin():
         return jsonify({"success": True})
     return jsonify({"success": False, "message": "PIN은 4자리 숫자여야 합니다."})
 
-# ====================== 메인 사이트 ======================
+# ====================== 메인 사이트 (배경 적용) ======================
 def show_main_site():
     photos1 = get_drive_photos(FOLDER1_ID)
     photos2 = get_drive_photos(FOLDER2_ID)
@@ -215,11 +214,28 @@ def show_main_site():
         img { cursor: pointer; transition: transform 0.2s; }
         img:hover { transform: scale(1.05); }
         .cart-img { max-height: 180px; object-fit: cover; border-radius: 12px; }
+
+        /* 호치민 야경 배경 - 안정적인 링크 사용 */
+        body {
+            background-image: url('https://images.pexels.com/photos/30281995/pexels-photo-30281995.jpeg?auto=compress&cs=tinysrgb&w=1920');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.82);
+            min-height: 100vh;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="text-white">
+<div class="overlay">
+
 <div class="max-w-7xl mx-auto p-6">
-    <h1 class="text-5xl font-bold text-center my-10">eco hcm 예약</h1>
+    <h1 class="text-5xl font-bold text-center my-10 drop-shadow-2xl">eco hcm 예약</h1>
 
     <div class="flex justify-center border-b border-gray-700 mb-10">
         <button onclick="switchTab(1)" id="tab1" class="tab px-10 py-4 tab-active text-xl">1번</button>
@@ -271,7 +287,7 @@ def show_main_site():
     <div class="bg-gray-800 rounded-3xl p-8 w-full max-w-md">
         <h2 class="text-3xl font-bold mb-6">예약 정보</h2>
         <input id="reserveDate" type="date" class="w-full p-4 bg-gray-700 rounded-2xl mb-4 text-white">
-        <input id="reserveTgId" type="text" placeholder="Telegram ID or 키키오톡 ID" class="w-full p-4 bg-gray-700 rounded-2xl mb-6 text-white">
+        <input id="reserveTgId" type="text" placeholder="Telegram ID 또는 @아이디" class="w-full p-4 bg-gray-700 rounded-2xl mb-6 text-white">
         <button id="submitBtn" onclick="submitReservation()" class="w-full bg-green-600 hover:bg-green-700 py-5 text-xl rounded-2xl font-bold">✅ 예약 전송하기</button>
         <button onclick="hideReserveModal()" class="mt-4 w-full text-gray-400 py-3">취소</button>
     </div>
@@ -423,6 +439,7 @@ window.submitReservation = function() {
     });
 };
 </script>
+</div>
 </body>
 </html>
 """
